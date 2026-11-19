@@ -33,17 +33,24 @@ def _normalize(x: np.ndarray) -> np.ndarray:
     return x / np.linalg.norm(x, axis=-1, keepdims=True)
 
 
+def _features(out) -> np.ndarray:
+    """Newer transformers return an output object instead of a tensor."""
+    if not isinstance(out, torch.Tensor):
+        out = out.pooler_output
+    return _normalize(out.cpu().numpy())
+
+
 @torch.no_grad()
 def embed_texts(model, processor, texts):
     inputs = processor(text=texts, return_tensors="pt", padding=True, truncation=True).to(device)
-    return _normalize(model.get_text_features(**inputs).cpu().numpy())
+    return _features(model.get_text_features(**inputs))
 
 
 @torch.no_grad()
 def embed_images(model, processor, paths):
     images = [Image.open(p).convert("RGB") for p in paths]
     inputs = processor(images=images, return_tensors="pt").to(device)
-    return _normalize(model.get_image_features(**inputs).cpu().numpy())
+    return _features(model.get_image_features(**inputs))
 
 
 def load_kb():

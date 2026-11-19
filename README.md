@@ -16,6 +16,12 @@ python rag.py --image my_photo.jpg --k 3
 python rag.py --text "lighter fabric" --image jacket.jpg
 ```
 
+## Web interface
+```bash
+python app.py
+```
+Then open http://127.0.0.1:7860 to search by text, photo, or both.
+
 ## Next steps
 - Pass retrieved results to an LLM to generate the final recommendation (the "G" in RAG)
 - Replace the numpy search with FAISS when the KB grows

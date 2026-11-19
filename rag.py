@@ -33,17 +33,24 @@ def _normalize(x: np.ndarray) -> np.ndarray:
     return x / np.linalg.norm(x, axis=-1, keepdims=True)
 
 
+def _features(out) -> np.ndarray:
+    """Newer transformers return an output object instead of a tensor."""
+    if not isinstance(out, torch.Tensor):
+        out = out.pooler_output
+    return _normalize(out.cpu().numpy())
+
+
 @torch.no_grad()
 def embed_texts(model, processor, texts):
     inputs = processor(text=texts, return_tensors="pt", padding=True, truncation=True).to(device)
-    return _normalize(model.get_text_features(**inputs).cpu().numpy())
+    return _features(model.get_text_features(**inputs))
 
 
 @torch.no_grad()
 def embed_images(model, processor, paths):
     images = [Image.open(p).convert("RGB") for p in paths]
     inputs = processor(images=images, return_tensors="pt").to(device)
-    return _normalize(model.get_image_features(**inputs).cpu().numpy())
+    return _features(model.get_image_features(**inputs))
 
 
 def load_kb():
@@ -68,14 +75,19 @@ def build_index(model, processor, notes, images):
     return items, np.vstack(vectors)
 
 
-def embed_query(model, processor, text=None, image=None):
-    parts = []
+def embed_query(model, processor, text=None, image=None, image_weight=0.5):
+    """Embed a text and/or image query.
+
+    When both are given, they are blended: image_weight=0 uses only the text,
+    1 uses only the photo, 0.5 weighs them equally.
+    """
+    if text and image:
+        t = embed_texts(model, processor, [text])[0]
+        i = embed_images(model, processor, [image])[0]
+        return _normalize((1 - image_weight) * t + image_weight * i)
     if text:
-        parts.append(embed_texts(model, processor, [text])[0])
-    if image:
-        parts.append(embed_images(model, processor, [image])[0])
-    # Combine text + image by averaging their normalized embeddings.
-    return _normalize(np.mean(parts, axis=0))
+        return embed_texts(model, processor, [text])[0]
+    return embed_images(model, processor, [image])[0]
 
 
 def search(query_vec, index, k):

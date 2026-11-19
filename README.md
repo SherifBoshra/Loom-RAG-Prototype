@@ -7,7 +7,7 @@ Multimodal retrieval prototype for an AI clothing stylist. A text and/or photo q
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
-Put a few clothing photos in `images/`. Edit `kb/fabric_notes.txt` (one fact per line; the starter notes are placeholders, verify before relying on them).
+Put clothing photos in `images/`, or run `python download_sample_images.py` to download ~30 varied, freely licensed sample photos from Wikimedia Commons (credits go to `images/CREDITS.md`). Edit `kb/fabric_notes.txt` (one fact per line; the starter notes are placeholders, verify before relying on them).
 
 ## Run
 ```bash

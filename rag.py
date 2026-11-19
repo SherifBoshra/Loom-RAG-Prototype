@@ -75,14 +75,19 @@ def build_index(model, processor, notes, images):
     return items, np.vstack(vectors)
 
 
-def embed_query(model, processor, text=None, image=None):
-    parts = []
+def embed_query(model, processor, text=None, image=None, image_weight=0.5):
+    """Embed a text and/or image query.
+
+    When both are given, they are blended: image_weight=0 uses only the text,
+    1 uses only the photo, 0.5 weighs them equally.
+    """
+    if text and image:
+        t = embed_texts(model, processor, [text])[0]
+        i = embed_images(model, processor, [image])[0]
+        return _normalize((1 - image_weight) * t + image_weight * i)
     if text:
-        parts.append(embed_texts(model, processor, [text])[0])
-    if image:
-        parts.append(embed_images(model, processor, [image])[0])
-    # Combine text + image by averaging their normalized embeddings.
-    return _normalize(np.mean(parts, axis=0))
+        return embed_texts(model, processor, [text])[0]
+    return embed_images(model, processor, [image])[0]
 
 
 def search(query_vec, index, k):

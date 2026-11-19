@@ -20,7 +20,7 @@ python rag.py --text "lighter fabric" --image jacket.jpg
 ```bash
 python app.py
 ```
-Then open http://127.0.0.1:7860 to search by text, photo, or both.
+Then open http://127.0.0.1:7860. Describe what you want (e.g. "a low cut red evening dress"), optionally add a reference photo, and it returns the closest photos from `images/`. Click "Rescan photos" after adding new photos.
 
 ## Next steps
 - Pass retrieved results to an LLM to generate the final recommendation (the "G" in RAG)
